@@ -12,6 +12,16 @@
 
   <artifactId>example-service</artifactId>
 
+  <dependencies>
+    <dependency>
+      <groupId>com.example.intellij</groupId>
+      <artifactId>Saxon-HE</artifactId>
+      <version>${revision}</version>
+      <classifier>xqj</classifier>
+    </dependency>
+  </dependencies>
+
+
   <build>
     <plugins>
       <plugin>
