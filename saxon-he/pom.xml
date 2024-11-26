@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.example.intellij</groupId>
+    <artifactId>example</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>Saxon-HE</artifactId>
+
+  <properties>
+    <saxon.version>12.5</saxon.version>
+    <xmlresolver.version>6.0.11</xmlresolver.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.xmlresolver</groupId>
+      <artifactId>xmlresolver</artifactId>
+      <version>${xmlresolver.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xmlresolver</groupId>
+      <artifactId>xmlresolver</artifactId>
+      <version>${xmlresolver.version}</version>
+      <classifier>data</classifier>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- turn off jar module, main jar is going to be replaced with the saxon one -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-jar</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- inject module-info into non-compliant saxon jars -->
+      <plugin>
+        <groupId>org.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>saxon-module-info</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+              <jdepsExtraArgs>
+                <jdepsExtraArg>--multi-release</jdepsExtraArg>
+                <jdepsExtraArg>${maven.compiler.release}</jdepsExtraArg>
+              </jdepsExtraArgs>
+              <modules>
+                <module>
+                  <artifact>
+                    <groupId>net.sf.saxon</groupId>
+                    <artifactId>Saxon-HE</artifactId>
+                    <version>${saxon.version}</version>
+                  </artifact>
+                  <moduleInfoSource>
+                    module net.sf.saxon {
+                    requires static java.xml;
+                    exports net.sf.saxon;
+                    exports net.sf.saxon.dom;
+                    exports net.sf.saxon.functions;
+                    exports net.sf.saxon.functions.registry;
+                    exports net.sf.saxon.jaxp;
+                    exports net.sf.saxon.lib;
+                    exports net.sf.saxon.om;
+                    exports net.sf.saxon.pattern;
+                    exports net.sf.saxon.pull;
+                    exports net.sf.saxon.query;
+                    exports net.sf.saxon.regex;
+                    exports net.sf.saxon.resource;
+                    exports net.sf.saxon.s9api;
+                    exports net.sf.saxon.s9api.push;
+                    exports net.sf.saxon.s9api.streams;
+                    exports net.sf.saxon.stax;
+                    exports net.sf.saxon.str;
+                    exports net.sf.saxon.style;
+                    exports net.sf.saxon.trace;
+                    exports net.sf.saxon.tree;
+                    exports net.sf.saxon.type;
+                    exports net.sf.saxon.value;
+                    exports net.sf.saxon.xpath;
+                    provides javax.xml.transform.TransformerFactory
+                    with net.sf.saxon.TransformerFactoryImpl;
+                    }
+                  </moduleInfoSource>
+                </module>
+                <module>
+                  <artifact>
+                    <groupId>net.sf.saxon</groupId>
+                    <artifactId>Saxon-HE</artifactId>
+                    <version>${saxon.version}</version>
+                    <classifier>xqj</classifier>
+                  </artifact>
+                  <moduleInfoSource>
+                    module com.saxonica.xqj {
+                    requires net.sf.saxon;
+                    exports javax.xml.xquery;
+                    exports com.saxonica.xqj;
+                    exports com.saxonica.xqj.pull;
+                    }
+                  </moduleInfoSource>
+                </module>
+              </modules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/modules</outputDirectory>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>net.sf.saxon</groupId>
+                  <artifactId>Saxon-HE</artifactId>
+                  <version>${saxon.version}</version>
+                  <classifier>sources</classifier>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>net.sf.saxon</groupId>
+                  <artifactId>Saxon-HE</artifactId>
+                  <version>${saxon.version}</version>
+                  <classifier>xqj-sources</classifier>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- attach the module enabled Saxon-HE.jar as main artifact -->
+      <plugin>
+        <groupId>org.codehaus.gmavenplus</groupId>
+        <artifactId>gmavenplus-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>replace-main-artifact</id>
+            <phase>package</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <scripts>
+                <script>
+                  project.artifact.setFile(new File("${project.build.directory}/modules/Saxon-HE-${saxon.version}.jar"))
+                </script>
+              </scripts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- attach all other resources -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-artifacts</id>
+            <phase>package</phase>
+            <goals>
+              <goal>attach-artifact</goal>
+            </goals>
+            <configuration>
+              <artifacts>
+                <artifact>
+                  <file>${project.build.directory}/modules/Saxon-HE-${saxon.version}-sources.jar</file>
+                  <type>jar</type>
+                  <classifier>sources</classifier>
+                </artifact>
+                <artifact>
+                  <file>${project.build.directory}/modules/Saxon-HE-${saxon.version}-xqj.jar</file>
+                  <type>jar</type>
+                  <classifier>xqj</classifier>
+                </artifact>
+                <artifact>
+                  <file>${project.build.directory}/modules/Saxon-HE-${saxon.version}-xqj-sources.jar</file>
+                  <type>jar</type>
+                  <classifier>xqj-sources</classifier>
+                </artifact>
+              </artifacts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

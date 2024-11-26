@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.example.intellij</groupId>
+    <artifactId>example-parent</artifactId>
+    <version>${revision}</version>
+    <relativePath>../parent/pom.xml</relativePath>
+  </parent>
+
+  <artifactId>example-service</artifactId>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <inherited>true</inherited>
+        <executions>
+          <execution>
+            <id>add-module-info</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+              <jdepsExtraArgs>
+                <jdepsExtraArg>--multi-release</jdepsExtraArg>
+                <jdepsExtraArg>${maven.compiler.release}</jdepsExtraArg>
+              </jdepsExtraArgs>
+              <module>
+                <moduleInfo>
+                  <name>com.example.intellij.service</name>
+                  <requires>
+                    *;
+                  </requires>
+                  <exports>
+                    *;
+                  </exports>
+                  <addServiceUses>true</addServiceUses>
+                </moduleInfo>
+              </module>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
